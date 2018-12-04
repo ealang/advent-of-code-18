@@ -1,4 +1,4 @@
-import Data.List (find)
+import Data.List ((!!), find)
 import Data.Map (Map)
 import System.Environment (getArgs)
 import Text.Regex (mkRegex, matchRegex)
@@ -21,10 +21,10 @@ part1 :: [Rect] -> Int
 part1 = length . filter (>1) . Map.elems . hitMap
 
 -- Identify a rectangle with no overlap
-part2 :: [(Int, Rect)] -> Maybe Int
-part2 claims = fst <$> find (hasNoOverlap (hitMap rects)) claims
-  where rects = map snd claims
-        hasNoOverlap hits (_, rect) = all (\pt -> Map.lookup pt hits == Just 1) (allPoints rect)
+part2 :: [Rect] -> Maybe Int
+part2 rects = fst <$> find (hasSingleOverlap (hitMap rects)) (zip [0..] rects)
+  where hasSingleOverlap hits (_, rect) = all (\pt -> Map.lookup pt hits == Just 1)
+                                              (allPoints rect)
 
 parseClaim :: String -> (Int, Rect)
 parseClaim line = (id, Rect x y width height)
@@ -35,6 +35,7 @@ parseClaim line = (id, Rect x y width height)
 main = do
   [fileName] <- getArgs
   claims <- map parseClaim . lines <$> readFile fileName
-  print $ part1 (map snd claims)
-  print $ part2 claims
+  let rects = map snd claims
+  print $ part1 rects
+  print $ (!!) claims <$> part2 rects
   
