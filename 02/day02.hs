@@ -6,8 +6,7 @@ import qualified Data.Map as Map
 -- Compute frequency of elements in a list
 freqMap :: Ord a => [a] -> Map Int a
 freqMap list = reverseMap $ foldl insert Map.empty list
-  where insert freqs char = Map.insertWith (\_ count -> count + 1)
-                                           char 1 freqs
+  where insert freqs elem = Map.insertWith (+) elem 1 freqs
         reverseMap m = Map.fromList . map swap $ Map.toList m
 
 -- Calculate checksum of ids
