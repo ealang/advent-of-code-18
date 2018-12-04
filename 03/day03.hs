@@ -1,3 +1,4 @@
+import Data.List (find)
 import Data.Map (Map)
 import System.Environment (getArgs)
 import Text.Regex (mkRegex, matchRegex)
@@ -7,16 +8,23 @@ data Rect = Rect { x :: Int, y :: Int, width :: Int, height :: Int }
             deriving (Show)
 
 allPoints :: Rect -> [Int]
-allPoints rect = [ xx + yy * 1000 | xx <- [x rect..x rect + width rect - 1],
-                                    yy <- [y rect..y rect + height rect - 1]]
+allPoints rect = [ xx + yy * 1000  | xx <- [x rect..x rect + width rect - 1],
+                                     yy <- [y rect..y rect + height rect - 1]]
 
+hitMap :: [Rect] -> Map Int Int
+hitMap = foldl apply Map.empty
+  where apply seen rect = foldl addPoint seen (allPoints rect)
+        addPoint map pt = Map.insertWith (+) pt 1 map
+
+-- Count square inches with overlap
 part1 :: [Rect] -> Int
-part1 rects = fst $ foldl apply (0, Map.empty) rects
-  where apply (count, seen) rect = let newSeen = foldl addPoint seen (allPoints rect)
-                                       addPoint map pt = Map.insertWith (+) pt 1 map
-                                       delta = length $ filter (\pt -> Map.lookup pt seen == Just 1)
-                                                                (allPoints rect)
-                                   in (count + delta, newSeen)
+part1 = length . filter (>1) . Map.elems . hitMap
+
+-- Identify a rectangle with no overlap
+part2 :: [(Int, Rect)] -> Maybe Int
+part2 claims = fst <$> find (hasNoOverlap (hitMap rects)) claims
+  where rects = map snd claims
+        hasNoOverlap hits (_, rect) = all (\pt -> Map.lookup pt hits == Just 1) (allPoints rect)
 
 parseClaim :: String -> (Int, Rect)
 parseClaim line = (id, Rect x y width height)
@@ -26,6 +34,7 @@ parseClaim line = (id, Rect x y width height)
 
 main = do
   [fileName] <- getArgs
-  rects <- map (snd . parseClaim) . lines <$> readFile fileName
-  print $ part1 rects
+  claims <- map parseClaim . lines <$> readFile fileName
+  print $ part1 (map snd claims)
+  print $ part2 claims
   
