@@ -8,8 +8,8 @@ data Rect = Rect { x :: Int, y :: Int, width :: Int, height :: Int }
             deriving (Show)
 
 allPoints :: Rect -> [Int]
-allPoints rect = [ xx + yy * 1000  | xx <- [x rect..x rect + width rect - 1],
-                                     yy <- [y rect..y rect + height rect - 1]]
+allPoints rect = [ xx + yy * 1000 | xx <- [x rect..x rect + width rect - 1],
+                                    yy <- [y rect..y rect + height rect - 1]]
 
 hitMap :: [Rect] -> Map Int Int
 hitMap = foldl apply Map.empty
