@@ -66,5 +66,5 @@ main = do
   let keyFunc (_, Begin id) = Just id
       keyFunc _             = Nothing
   notes <- groupByKeyFrames keyFunc . map parseLine . sort . lines <$> readFile "day04.txt"
-  print $ part1 notes -- 94040
-  print $ part2 notes -- 39940
+  print $ part1 notes
+  print $ part2 notes
