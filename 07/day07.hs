@@ -1,50 +1,52 @@
+import Data.Char (ord)
+import Data.List (intercalate)
 import Data.Map ((!), Map)
-import Data.Tuple (swap)
-import Data.List (sort, intercalate, find)
 import Data.Set (Set)
-import Debug.Trace
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
-invertGraph :: Map String [String] -> Map String [String]
-invertGraph graph = foldl insert Map.empty pairs
-  where pairs                = concatMap (\(k, vals) -> [(v, k) | v <- vals]) $ Map.toList graph
-        insert graph' (k, v) = Map.insertWith (++) k [v] graph'
+taskTime :: String -> Int
+taskTime task = 61 + (ord . head $ task) - ord 'A'
 
-findLeaf :: Map String [String] -> String
-findLeaf graph = backFrom start
-  where (start, _) = Map.findMin graph
-        backFrom node
-          | Map.member node graph = backFrom (head $ graph ! node)
-          | otherwise             = node
+tasksAvail :: Map String [String] -> Set String -> Set String -> Set String
+tasksAvail deps completed = Set.filter canRun
+  where canRun task = not $ any (`Set.notMember` completed) (Map.findWithDefault [] task deps)
 
-findLeaves :: Map String [String] -> String -> Set String
-findLeaves graph node
-  | Map.notMember node graph = Set.singleton node
-  | otherwise                = foldl Set.union Set.empty
-                                     [findLeaves graph node | node <- graph ! node ]
+allTasksFrom :: Map String [String] -> Set String
+allTasksFrom deps = Set.fromList $ concatMap (uncurry (:)) (Map.toList deps)
 
--- Find alphabetically sorted run order of tasks
-part1 :: Map String [String] -> [String]
-part1 order = part1' startingNodes Set.empty
-  where deps          = invertGraph order
-        startingNodes = findLeaves deps (findLeaf order)
-        part1' consider completed
-          | Set.null consider = []
-          | otherwise         = node:part1' consider' completed'
-              where Just node  = find canRun (Set.elems consider)
-                    consider'  = Set.union (Set.delete node consider) (Set.fromList unlocked)
-                    completed' = Set.insert node completed
-                    unlocked   = Map.findWithDefault [] node order
-                    canRun node         = not $ any (`Set.notMember` completed) (dependenciesOf node)
-                    dependenciesOf node = Map.findWithDefault [] node deps
+-- Return list of tasks with completion time
+execTasks :: Map String [String] -> Int -> [(Int, String)]
+execTasks deps nworkers = exec 0 nworkers (allTasksFrom deps) Set.empty Set.empty
+  where exec time n avail completed pending 
+          | null pending && null avail = []
+          | n == 0 || null canRun      = wait
+          | otherwise                  = runNext
+          where wait = event:exec time' (n + 1) avail completed' pending'
+                       where completed' = task `Set.insert` completed
+                             (event@(time', task), pending') = Set.deleteFindMin pending
+                runNext = exec time  (n - 1) avail' completed pending'
+                          where task = Set.findMin canRun
+                                event   = (time + taskTime task, task)
+                                pending' = event `Set.insert` pending
+                                avail'  = task `Set.delete` avail
+                canRun = tasksAvail deps completed avail
+
+-- Get execution order
+part1 :: Map String [String] -> Int -> [String]
+part1 deps nWorkers = map snd $ execTasks deps nWorkers
+
+-- Get total time to execute tasks
+part2 :: Map String [String] -> Int -> Int
+part2 deps nWorkers = fst . last $ execTasks deps nWorkers
 
 main = do
   let parseStep step = (a, b)
         where _:a:_:_:_:_:_:b:_ = words step
 
   steps <- map parseStep . lines <$> readFile "day07.txt"
-  let order = foldl (\order' (a, b) -> Map.insertWith (++) a [b] order')
-              Map.empty steps
+  let deps = foldl (\order' (a, b) -> Map.insertWith (++) b [a] order')
+                   Map.empty steps
 
-  print $ intercalate "" (part1 order) -- BFLNGIRUSJXEHKQPVTYOCZDWMA
+  print $ intercalate "" (part1 deps 1)
+  print $ part2 deps 5
