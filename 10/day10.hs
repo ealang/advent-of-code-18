@@ -23,9 +23,12 @@ particleSim vels = iterate (applyVel vels)
 
 -- Run the particle sim for a while, returning the state where
 -- the spread of the particles is minimized.
-part1 pts vels = minimumBy (comparing bboxWidth) (take n sim)
-  where sim = particleSim vels pts
-        n = bboxWidth pts `div` 2
+findMsg :: [Vec2] -> [Vec2] -> (Int, [Vec2], Int)
+findMsg pts vels = minimumBy (comparing t3) $ zipWith addWidth [0..n] sim
+  where n = bboxWidth pts `div` 2
+        sim = particleSim vels pts
+        t3 (_, _, v) = v
+        addWidth i pts = (i, pts, bboxWidth pts)
 
 renderPts :: [Vec2] -> String
 renderPts pts = unlines [unwords [char (x, y) |
@@ -43,4 +46,6 @@ main = do
   (pts, vels) <- unzip .
                  map parseLine .
                  lines <$> readFile "day10.txt"
-  putStrLn $ renderPts (part1 pts vels)
+  let (time, endPts, _) = findMsg pts vels
+  putStrLn $ renderPts endPts
+  print time
