@@ -24,11 +24,11 @@ particleSim vels = iterate (applyVel vels)
 -- Run the particle sim for a while, returning the state where
 -- the spread of the particles is minimized.
 findMsg :: [Vec2] -> [Vec2] -> (Int, [Vec2], Int)
-findMsg pts vels = minimumBy (comparing t3) $ zipWith addWidth [0..n] sim
+findMsg pts vels = minimumBy (comparing t3) $ zipWith withWidth [0..n] sim
   where n = bboxWidth pts `div` 2
         sim = particleSim vels pts
         t3 (_, _, v) = v
-        addWidth i pts = (i, pts, bboxWidth pts)
+        withWidth i pts = (i, pts, bboxWidth pts)
 
 renderPts :: [Vec2] -> String
 renderPts pts = unlines [unwords [char (x, y) |
