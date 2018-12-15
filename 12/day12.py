@@ -1,3 +1,4 @@
+from itertools import islice
 from node import LeafNode, InnerNode
 
 def empty_tree(n):
@@ -27,18 +28,28 @@ def apply_rules(rules, init_state):
             yield from apply(node.edges[seq[0]], seq[1:])
     return '..' + ''.join(apply(rules, init_state)) + '..'
 
-def part_1(rules, init_state):
-    n = 20
-    ends = '..' * n
-    state = ends + init_state + ends
-    for _ in range(n):
+def apply_rules_loop(rules, state):
+    while True:
+        yield state
         state = apply_rules(rules, state)
-        print(state)
-    result = 0
+
+def part_1(n, rules, init_state):
+    ends = '..' * n
+    generations = apply_rules_loop(rules, ends + init_state + ends)
+    state = next(islice(generations, n, n + 1))
+    count = 0
     for i, pot in enumerate(state):
         if pot == '#':
-            result += i - len(ends)
-    return result
+            count += i - len(ends)
+    return count
+
+def part_2(rules, init_state):
+    # Find steady state, calculate manually
+    n = 120
+    ends = '.' * n
+    generations = apply_rules_loop(rules, ends + init_state + ends)
+    for i, state in enumerate(islice(generations, n)):
+        print(i, state.count('#'), state.index('#') - len(ends), state)
 
 def parse_input(filename):
     with open(filename) as fp:
@@ -50,4 +61,5 @@ def parse_input(filename):
 if __name__ == '__main__':
     init_state, mapping = parse_input('day12.txt')
     rules = generate_rule_tree(mapping)
-    print(part_1(rules, init_state))
+    print(part_1(20, rules, init_state))
+    part_2(rules, init_state)
