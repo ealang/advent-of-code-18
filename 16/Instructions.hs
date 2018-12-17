@@ -4,8 +4,9 @@ import Data.Bits ((.&.), (.|.))
 import Data.Map ((!))
 import qualified Data.Map as Map
 
-import Types (RegisterMap)
+import Types (RegisterMap, Operation)
 
+instructionSet :: [Operation]
 instructionSet = [ instrAddr,
                    instrAddi,
                    instrMulr,

@@ -1,11 +1,11 @@
-module Parse (parseSamples) where
+module Parse (parseSamples, parseInstructions) where
 
 import Data.Map (Map)
 import Data.List (partition)
 import Text.Regex.Posix ((=~), getAllTextMatches)
 import qualified Data.Map as Map
 
-import Types (RegisterMap, Sample)
+import Types (RegisterMap, Sample, Instruction)
 
 breakAllOn :: (a -> Bool) -> [a] -> [[a]]
 breakAllOn p xs = case dropWhile p xs of
@@ -22,3 +22,6 @@ parseSamples input = map parseCase casesStr
   where casesStr = breakAllOn (=="") (lines input)
         parseCase [before, instr, after] = (parseReg before, findInts instr, parseReg after)
         parseReg str = Map.fromList $ zip [0..] (findInts str)
+
+parseInstructions :: String -> [Instruction]
+parseInstructions = map findInts . lines
