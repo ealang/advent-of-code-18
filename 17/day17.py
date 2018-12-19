@@ -45,22 +45,21 @@ def render_str(clay, visited, blocked):
     )
 
 def reachable_from(pt, clay, blocked):
-    left = Pt(pt.x - 1, pt.y)
-    right = Pt(pt.x + 1, pt.y)
     down = Pt(pt.x, pt.y + 1)
-
     if down in clay or down in blocked:
-        return {p for p in (left, right) if p not in clay}
+        left = Pt(pt.x - 1, pt.y)
+        right = Pt(pt.x + 1, pt.y)
+        return {left, right} - clay
     return {down}
 
 def runwater(water_pt, clay):
+    [_, _, _, ybound] = clay_bounds(clay)
+
     visited = set()
     flowing = set()
     blocked = set()
+
     to_visit = [water_pt]
-
-    [_, _, _, ybound] = clay_bounds(clay)
-
     while to_visit:
         pt = to_visit.pop()
         visited.add(pt)
