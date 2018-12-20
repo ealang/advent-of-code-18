@@ -1,5 +1,6 @@
-import Control.Arrow ((&&&))
-import Data.List ((!!), intercalate)
+module Settlers (Terrain, renderTerrain, statesFrom, resourceValue) where
+
+import Data.List (intercalate)
 import Data.List.Split (chunksOf)
 import Data.Map (Map)
 import Data.Vector ((!), Vector)
@@ -54,11 +55,3 @@ resourceValue terrain = ntrees * nyards
 
 renderTerrain :: Int -> Terrain -> String
 renderTerrain n terrain = intercalate "\n" (chunksOf n (Vector.toList terrain))
- 
-main = do
-  let findSize = floor . sqrt . fromIntegral . length
-  (n, terrain) <- (findSize &&& Vector.fromList) . filter (/='\n') <$> readFile "input.txt"
-
-  let (part1, terrain10) = (resourceValue &&& renderTerrain n) (statesFrom n terrain !! 10)
-  putStrLn terrain10
-  print part1 -- 507755
