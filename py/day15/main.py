@@ -1,6 +1,6 @@
 from collections import namedtuple
 from itertools import count
-from pathfind import pathfind_from_targets, PATH_IMPASSE, PATH_PASSABLE
+from .pathfind import pathfind_from_targets, PATH_IMPASSE, PATH_PASSABLE
 
 Player = namedtuple('Player', ('id', 'team', 'x', 'y', 'hp'))
 

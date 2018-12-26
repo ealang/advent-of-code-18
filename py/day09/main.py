@@ -1,5 +1,5 @@
 from collections import defaultdict
-from circular_list import CircularList
+from .circular_list import CircularList
 
 def player_scores(nplayers, nturns):
     scores = defaultdict(int)

@@ -1,5 +1,5 @@
 from itertools import islice
-from node import LeafNode, InnerNode
+from .node import LeafNode, InnerNode
 
 def empty_tree(n):
     if n > 0:

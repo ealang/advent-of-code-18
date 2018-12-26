@@ -1,4 +1,4 @@
-from cartlib import next_cart_state, parse_input
+from .cartlib import next_cart_state, parse_input
 
 def sim_steps(tracks, carts):
     cart_order = lambda cart: (cart.y, cart.x)
