@@ -46,8 +46,7 @@ part1 depth target = sum $ fmap risk (regionTable depth target target)
 
 -- Find minimum time to reach target
 part2 :: Int -> Pt -> Maybe Int
-part2 depth target@(tx, ty) = find (Map.member endPt) searchStream >>=
-                              Map.lookup endPt
+part2 depth target@(tx, ty) = fst <$> find ((==endPt) . snd) searchStream
   where startPt = ((0, 0), Torch)
         endPt = (target, Torch)
         searchStream = bfSearch startPt (nextActions regions)
