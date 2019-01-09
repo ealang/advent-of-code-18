@@ -1,2 +1,3 @@
 *.pyc
+venv
 .mypy_cache
