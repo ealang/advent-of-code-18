@@ -1,8 +1,9 @@
 import re
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, replace
 from functools import partial
-from typing import List, Set, Mapping, Tuple, Dict
 from itertools import chain
+from typing import Callable, List, Set, Mapping, Tuple, Dict, Optional
 
 @dataclass
 class Group:
@@ -39,6 +40,12 @@ class Army:
 
     def __getitem__(self, i: int) -> Group:
         return self.groups[i]
+
+    def with_boost(self, boost: int) -> 'Army':
+        return replace(self, groups=[
+            replace(group, attack_damage=group.attack_damage + boost)
+            for group in self.groups
+        ])
 
     @property
     def alive(self) -> bool:
@@ -127,12 +134,29 @@ def plan_attack(attackers: Army, defenders: Army) -> Mapping[int, int]:
             break
     return plan
 
-def part1(army1: Army, army2: Army) -> int:
+def binsearch(lo: int, hi: int, p: Callable[[int], bool]) -> Optional[int]:
+    if lo >= hi:
+        return None
+
+    m = (lo + hi) // 2
+    if p(m):
+        result = binsearch(lo, m, p)
+        if result is None:
+            return m
+        return min(result, m)
+    return binsearch(m + 1, hi, p)
+
+def part1(army1: Army, army2: Army) -> Tuple[int, int]:
     '''Simulate a battle.'''
     def label(l, it):
         for item in it:
             yield (l, item)
 
+    def unit_counts():
+        return (army1.units_remaining, army2.units_remaining)
+
+    army1 = deepcopy(army1)
+    army2 = deepcopy(army2)
     armies = [army1, army2]
     while all(army.alive for army in armies):
         attacks = sorted(
@@ -151,18 +175,34 @@ def part1(army1: Army, army2: Army) -> int:
             reverse=True
         )
 
+        old_counts = unit_counts()
         for attacker, defender in attacks:
             defender.take_damage(
                 damage_done(attacker, defender)
             )
+        if old_counts == unit_counts():
+            return (-1, 0)  # tie
 
     if army1.alive:
-        return army1.units_remaining
-    return army2.units_remaining
+        return (0, army1.units_remaining)
+    return (1, army2.units_remaining)
+
+def part2(immune: Army, infection: Army) -> Optional[int]:
+    def wins_with_boost(boost):
+        winner, _ = part1(immune.with_boost(boost), infection)
+        return winner == 0
+
+    winning_boost = binsearch(
+        0, 10000, wins_with_boost
+    )
+    if winning_boost:
+        _, units = part1(immune.with_boost(winning_boost), infection)
+        return units
+    return None
 
 def main() -> None:
-    army1 = load_army('day24/input-immune-system.txt')
-    army2 = load_army('day24/input-infection.txt')
-    print(part1(army1, army2)) # 9878
-
+    immune = load_army('day24/input-immune-system.txt')
+    infection = load_army('day24/input-infection.txt')
+    print(part1(immune, infection)) # 9878
+    print(part2(immune, infection)) # 10954
 main()
