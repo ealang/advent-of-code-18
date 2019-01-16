@@ -134,18 +134,6 @@ def plan_attack(attackers: Army, defenders: Army) -> Mapping[int, int]:
             break
     return plan
 
-def binsearch(lo: int, hi: int, p: Callable[[int], bool]) -> Optional[int]:
-    if lo >= hi:
-        return None
-
-    m = (lo + hi) // 2
-    if p(m):
-        result = binsearch(lo, m, p)
-        if result is None:
-            return m
-        return min(result, m)
-    return binsearch(m + 1, hi, p)
-
 def part1(army1: Army, army2: Army) -> Tuple[int, int]:
     '''Simulate a battle.'''
     def label(l, it):
@@ -192,10 +180,22 @@ def part2(immune: Army, infection: Army) -> Optional[int]:
         winner, _ = part1(immune.with_boost(boost), infection)
         return winner == 0
 
+    def binsearch(lo: int, hi: int, p: Callable[[int], bool]) -> Optional[int]:
+        if lo >= hi:
+            return None
+
+        m = (lo + hi) // 2
+        if p(m):
+            result = binsearch(lo, m, p)
+            if result is None:
+                return m
+            return min(result, m)
+        return binsearch(m + 1, hi, p)
+
     winning_boost = binsearch(
         0, 10000, wins_with_boost
     )
-    if winning_boost:
+    if winning_boost is not None:
         _, units = part1(immune.with_boost(winning_boost), infection)
         return units
     return None
@@ -205,4 +205,5 @@ def main() -> None:
     infection = load_army('day24/input-infection.txt')
     print(part1(immune, infection)) # 9878
     print(part2(immune, infection)) # 10954
+
 main()
